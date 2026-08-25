@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,8 +10,17 @@ export default function LandingPage() {
   const [pin, setPin] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  
+  // FIX: Dynamic routing based on Auth status
+  const [portalRoute, setPortalRoute] = useState('/onboarding');
   const router = useRouter();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (localStorage.getItem('domainAssess_auth') === 'granted') {
+      setPortalRoute('/admin/dashboard');
+    }
+  }, []);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,49 +33,26 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 relative overflow-hidden selection:bg-indigo-100">
-      
-      {/* Decorative Animated Background Elements */}
       <div className="absolute top-0 inset-x-0 h-full overflow-hidden -z-10 pointer-events-none fixed">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-[pulse_6s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
         <div className="absolute top-40 -left-20 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-[pulse_8s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
       </div>
 
-      {/* Responsive Navbar */}
       <header className="px-4 md:px-8 py-4 flex justify-between items-center max-w-7xl mx-auto w-full relative z-20">
         <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => { window.scrollTo(0,0); }}>
-          
-          {/* UPDATED: Native Next.js Image Component */}
-          <Image 
-            src="/logo.png" 
-            alt="DomainAssess Logo" 
-            width={40} 
-            height={40} 
-            className="w-8 h-8 md:w-10 md:h-10 rounded-xl shadow-sm group-hover:scale-105 transition-transform" 
-          />
-          <span className="text-lg md:text-xl font-black tracking-tight text-slate-900">
-            DomainAssess
-          </span>
+          <Image src="/logo.png" alt="DomainAssess Logo" width={40} height={40} className="w-8 h-8 md:w-10 md:h-10 rounded-xl shadow-sm group-hover:scale-105 transition-transform" />
+          <span className="text-lg md:text-xl font-black tracking-tight text-slate-900">DomainAssess</span>
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          <a href="#methodology" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">
-            Methodology
-          </a>
-          <a href="#support" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">
-            Support
-          </a>
-          <Link 
-            href="/onboarding" 
-            className="text-sm font-black text-white hover:text-white bg-slate-900 hover:bg-indigo-600 transition-all px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
-          >
+          <a href="#methodology" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Methodology</a>
+          <a href="#support" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Support</a>
+          <Link href={portalRoute} className="text-sm font-black text-white hover:text-white bg-slate-900 hover:bg-indigo-600 transition-all px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95">
             Facilitator Portal &rarr;
           </Link>
         </nav>
 
-        <button 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none bg-white/80 rounded-xl border border-slate-200 backdrop-blur-md active:scale-95 transition-transform"
-        >
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none bg-white/80 rounded-xl border border-slate-200 backdrop-blur-md active:scale-95 transition-transform">
           {isMenuOpen ? (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"></path></svg>
           ) : (
@@ -75,25 +61,16 @@ export default function LandingPage() {
         </button>
       </header>
 
-      {/* Mobile Dropdown Menu */}
       <div className={`md:hidden fixed w-full bg-white/95 backdrop-blur-xl shadow-2xl border-b border-slate-200 z-50 transition-all duration-300 ease-out ${isMenuOpen ? 'top-[72px] opacity-100 visible' : 'top-10 opacity-0 invisible pointer-events-none'}`}>
         <div className="flex flex-col px-6 py-6 gap-2">
-          <a href="#methodology" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">
-            Methodology
-          </a>
-          <a href="#support" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">
-            Support
-          </a>
-          <button 
-            onClick={() => router.push('/onboarding')}
-            className="mt-4 text-center text-sm font-black text-white bg-slate-900 hover:bg-indigo-600 py-4 rounded-xl transition-colors shadow-md"
-          >
+          <a href="#methodology" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Methodology</a>
+          <a href="#support" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Support</a>
+          <button onClick={() => router.push(portalRoute)} className="mt-4 text-center text-sm font-black text-white bg-slate-900 hover:bg-indigo-600 py-4 rounded-xl transition-colors shadow-md">
             Facilitator Portal
           </button>
         </div>
       </div>
 
-      {/* --- HERO SECTION --- */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 text-center max-w-4xl mx-auto relative z-0 py-20">
         <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-6 shadow-sm">
           <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -102,7 +79,7 @@ export default function LandingPage() {
         
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-5 tracking-tight leading-tight">
           Master Bloom's Taxonomy in <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500">
+          <span className="whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500">
             Real-Time
           </span>
         </h1>
@@ -132,7 +109,6 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* --- METHODOLOGY SECTION --- */}
       <section id="methodology" className="py-24 bg-white border-y border-slate-200 relative z-10">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -176,7 +152,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- SUPPORT / FAQ SECTION --- */}
       <section id="support" className="py-20 relative z-10">
         <div className="max-w-2xl mx-auto px-6 text-center">
           <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-3 tracking-tight">Need Support?</h2>
@@ -185,33 +160,22 @@ export default function LandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mb-6">
-            <button 
-              onClick={() => setIsSupportModalOpen(true)}
-              className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95"
-            >
+            <button onClick={() => setIsSupportModalOpen(true)} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95">
               Contact IT Support
             </button>
-            <button 
-              onClick={() => router.push('/onboarding')} 
-              className="w-full sm:w-auto bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95"
-            >
+            <button onClick={() => router.push(portalRoute)} className="w-full sm:w-auto bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95">
               View Facilitator Guide
             </button>
           </div>
         </div>
       </section>
 
-      {/* --- SUPPORT CONTACT MODAL --- */}
       {isSupportModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
-            
             <div className="relative flex justify-center items-center p-5 border-b border-slate-100">
               <h3 className="font-black text-slate-800 text-lg">Contact Support</h3>
-              <button 
-                onClick={() => setIsSupportModalOpen(false)} 
-                className="absolute right-4 text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors p-2 rounded-full"
-              >
+              <button onClick={() => setIsSupportModalOpen(false)} className="absolute right-4 text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors p-2 rounded-full">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -220,13 +184,7 @@ export default function LandingPage() {
               <p className="text-sm text-slate-500 font-medium text-center mb-6 px-2">
                 Choose how you would like to reach us. We typically respond within a few hours.
               </p>
-              
-              <a 
-                href="https://wa.me/2348084737049" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center gap-4 w-full p-4 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/20 hover:bg-[#25D366]/20 transition-colors group active:scale-[0.98]"
-              >
+              <a href="https://wa.me/2348084737049" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 w-full p-4 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/20 hover:bg-[#25D366]/20 transition-colors group active:scale-[0.98]">
                 <div className="w-12 h-12 bg-[#25D366] text-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 21.054c-1.745 0-3.411-.468-4.896-1.353l-.35-.208-3.641.954.97-3.548-.228-.363a9.907 9.907 0 01-1.522-5.32C2.364 5.614 6.697 1.28 12.031 1.28c5.333 0 9.667 4.333 9.667 9.668 0 5.334-4.334 9.668-9.667 9.668zm0-18.064c-4.498 0-8.15 3.652-8.15 8.148 0 1.439.373 2.846 1.082 4.084l1.084 1.89-1.28 4.685 4.795-1.258 1.81.996c1.218.67 2.59 1.024 3.987 1.024 4.497 0 8.148-3.652 8.148-8.148 0-4.496-3.65-8.148-8.148-8.148zm4.468 11.238c-.244-.123-1.448-.713-1.672-.795-.224-.082-.387-.123-.55.123-.163.245-.632.795-.774.957-.143.163-.286.184-.53.061-.245-.123-1.034-.38-1.968-1.173-.728-.617-1.22-1.38-1.363-1.624-.143-.245-.015-.378.107-.5.11-.11.245-.286.368-.429.122-.143.163-.245.244-.408.082-.163.041-.306-.02-.429-.061-.123-.55-1.326-.754-1.816-.198-.479-.4-.414-.55-.421-.142-.007-.305-.007-.468-.007-.163 0-.428.061-.652.306-.224.245-.856.836-.856 2.04 0 1.203.876 2.366.999 2.53.123.163 1.725 2.63 4.177 3.687 2.052.884 2.45.713 2.898.673.449-.041 1.448-.592 1.652-1.163.204-.572.204-1.061.143-1.163-.061-.102-.224-.163-.469-.286z"/></svg>
                 </div>
@@ -236,10 +194,7 @@ export default function LandingPage() {
                 </div>
               </a>
 
-              <a 
-                href="mailto:smkmayomisamuel@gmail.com" 
-                className="flex items-center gap-4 w-full p-4 rounded-2xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors group active:scale-[0.98]"
-              >
+              <a href="mailto:smkmayomisamuel@gmail.com" className="flex items-center gap-4 w-full p-4 rounded-2xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors group active:scale-[0.98]">
                 <div className="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 </div>
@@ -253,7 +208,6 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Clean Footer */}
       <footer className="py-6 bg-slate-900 text-center text-slate-400 text-xs md:text-sm font-medium relative z-20 border-t border-slate-800">
         <div className="flex flex-col items-center justify-center">
           <p>&copy; {new Date().getFullYear()} DomainAssess Platform. All rights reserved.</p>

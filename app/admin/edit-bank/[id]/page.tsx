@@ -3,17 +3,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '../../../components/ToastProvider';
+import { apiFetch } from '../../../../lib/api';
+
+const Spinner = ({ className = "w-4 h-4" }) => (
+  <svg className={`animate-spin text-current ${className}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+);
 
 const FIXED_TAXONOMY_WORDS = [
-  { id: 'tax_c1', text: 'Remembering', domain: 'Cognitive' }, { id: 'tax_c2', text: 'Understanding', domain: 'Cognitive' },
-  { id: 'tax_c3', text: 'Applying', domain: 'Cognitive' }, { id: 'tax_c4', text: 'Analyzing', domain: 'Cognitive' },
-  { id: 'tax_c5', text: 'Evaluating', domain: 'Cognitive' }, { id: 'tax_c6', text: 'Creating', domain: 'Cognitive' },
-  { id: 'tax_p1', text: 'Perception', domain: 'Psychomotor' }, { id: 'tax_p2', text: 'Set', domain: 'Psychomotor' },
-  { id: 'tax_p3', text: 'Guided Response', domain: 'Psychomotor' }, { id: 'tax_p4', text: 'Mechanism', domain: 'Psychomotor' },
-  { id: 'tax_p5', text: 'Complex Overt Response', domain: 'Psychomotor' }, { id: 'tax_p6', text: 'Adaptation', domain: 'Psychomotor' },
-  { id: 'tax_p7', text: 'Origination', domain: 'Psychomotor' }, { id: 'tax_a1', text: 'Receiving Phenomena', domain: 'Affective' },
-  { id: 'tax_a2', text: 'Responding', domain: 'Affective' }, { id: 'tax_a3', text: 'Valuing', domain: 'Affective' },
-  { id: 'tax_a4', text: 'Organization', domain: 'Affective' }, { id: 'tax_a5', text: 'Internalizing Values', domain: 'Affective' }
+  { id: 'tax_c1', text: 'Level 1: Remembering', domain: 'Cognitive' }, { id: 'tax_c2', text: 'Level 2: Understanding', domain: 'Cognitive' },
+  { id: 'tax_c3', text: 'Level 3: Applying', domain: 'Cognitive' }, { id: 'tax_c4', text: 'Level 4: Analyzing', domain: 'Cognitive' },
+  { id: 'tax_c5', text: 'Level 5: Evaluating', domain: 'Cognitive' }, { id: 'tax_c6', text: 'Level 6: Creating', domain: 'Cognitive' },
+  { id: 'tax_p1', text: 'Level 1: Perception', domain: 'Psychomotor' }, { id: 'tax_p2', text: 'Level 2: Set', domain: 'Psychomotor' },
+  { id: 'tax_p3', text: 'Level 3: Guided Response', domain: 'Psychomotor' }, { id: 'tax_p4', text: 'Level 4: Mechanism', domain: 'Psychomotor' },
+  { id: 'tax_p5', text: 'Level 5: Complex Overt Response', domain: 'Psychomotor' }, { id: 'tax_p6', text: 'Level 6: Adaptation', domain: 'Psychomotor' },
+  { id: 'tax_p7', text: 'Level 7: Origination', domain: 'Psychomotor' }, { id: 'tax_a1', text: 'Level 1: Receiving Phenomena', domain: 'Affective' },
+  { id: 'tax_a2', text: 'Level 2: Responding', domain: 'Affective' }, { id: 'tax_a3', text: 'Level 3: Valuing', domain: 'Affective' },
+  { id: 'tax_a4', text: 'Level 4: Organization', domain: 'Affective' }, { id: 'tax_a5', text: 'Level 5: Internalizing Values', domain: 'Affective' }
 ];
 
 const AutoExpandTextarea = ({ value, onChange, placeholder, required = false, className = "", minHeight = 42 }: any) => {
@@ -81,25 +89,30 @@ export default function EditTrainingModulePage() {
 
   useEffect(() => {
     async function loadBank() {
+      if (!bankId) return;
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/banks/${bankId}`);
+        const res = await apiFetch(`/api/banks/${bankId}`);
+        if (!res.ok) throw new Error('Failed to fetch module data from server.');
         const data = await res.json();
-        setTitle(data.title); setDescription(data.description);
         
-        const loadedObjectives = data.questions.map((q: any, index: number) => {
+        setTitle(data.title || ''); 
+        setDescription(data.description || '');
+        
+        const loadedObjectives = (data.questions || []).map((q: any, index: number) => {
           const type = q.questionType === 'TAXONOMY_LEVEL' ? 'TAXONOMY_LEVEL' : 'RAPID_SORT';
-          const topic = q.prompt ? q.prompt.replace(/^(Rapid Sort: Categorize terms related to |Taxonomy Level: )/i, '') : '';
+          const topic = q.prompt ? q.prompt.replace(/^.*:\s*/, '') : '';
           return { id: `obj_${index}`, questionType: type, words: q.words || [], aiTopic: topic, wordCount: q.words?.length || 15, isGeneratingAi: false, isExpanded: false };
         });
         
         if (loadedObjectives.length > 0) loadedObjectives[0].isExpanded = true;
         setObjectives(loadedObjectives);
       } catch (err) { 
+        console.error("Blueprint Load Error:", err);
         showToast('Failed to load the curriculum blueprint.', 'error'); 
         router.push('/admin/dashboard'); 
       } finally { setIsLoading(false); }
     }
-    if (bankId) loadBank();
+    loadBank();
   }, [bankId, router, showToast]);
 
   const handleAddObjective = () => setObjectives([...objectives, { id: `obj_${Date.now()}`, questionType: 'RAPID_SORT', words: [], aiTopic: '', wordCount: 15, isGeneratingAi: false, isExpanded: true }]);
@@ -113,7 +126,7 @@ export default function EditTrainingModulePage() {
   
   const handleObjectiveChange = (index: number, field: string, value: any) => { 
     const updated = [...objectives]; 
-    (updated[index] as any)[field] = value; 
+    updated[index] = { ...updated[index], [field]: value };
     if (field === 'questionType' && value === 'TAXONOMY_LEVEL') {
       updated[index].words = [...FIXED_TAXONOMY_WORDS];
       updated[index].aiTopic = 'Sort the 18 educational taxonomy levels into their correct learning domains.';
@@ -124,7 +137,11 @@ export default function EditTrainingModulePage() {
     setObjectives(updated); 
   };
   
-  const handleToggleExpand = (index: number) => { const updated = [...objectives]; updated[index].isExpanded = !updated[index].isExpanded; setObjectives(updated); };
+  const handleToggleExpand = (index: number) => { 
+    const updated = [...objectives]; 
+    updated[index] = { ...updated[index], isExpanded: !updated[index].isExpanded };
+    setObjectives(updated); 
+  };
 
   const handleGenerateAI = async (index: number) => {
     const obj = objectives[index];
@@ -134,20 +151,26 @@ export default function EditTrainingModulePage() {
       return;
     }
 
-    const loadingState = [...objectives]; loadingState[index].isGeneratingAi = true; setObjectives(loadingState);
+    const loadingState = [...objectives]; 
+    loadingState[index] = { ...loadingState[index], isGeneratingAi: true }; 
+    setObjectives(loadingState);
 
     try {
       const payload = { topic: obj.aiTopic, mode: obj.questionType, wordCount: obj.wordCount };
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/ai/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await apiFetch(`/api/ai/generate`, { method: 'POST', body: JSON.stringify(payload) });
       const data = await res.json();
       
       if (!res.ok) throw new Error(data.error || 'AI Generation failed.');
       
-      const updatedDone = [...objectives]; updatedDone[index].words = data.words; updatedDone[index].isGeneratingAi = false; setObjectives(updatedDone);
+      const updatedDone = [...objectives]; 
+      updatedDone[index] = { ...updatedDone[index], words: data.words, isGeneratingAi: false }; 
+      setObjectives(updatedDone);
       showToast('AI Generation Complete!', 'success');
     } catch (err: any) { 
       showToast(err.message || 'Error communicating with AI service.', 'error'); 
-      const errorState = [...objectives]; errorState[index].isGeneratingAi = false; setObjectives(errorState); 
+      const errorState = [...objectives]; 
+      errorState[index] = { ...errorState[index], isGeneratingAi: false }; 
+      setObjectives(errorState); 
     }
   };
 
@@ -168,7 +191,7 @@ export default function EditTrainingModulePage() {
           words: obj.words, options: [] 
         };
       });
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/banks/${bankId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, description, category: 'AI Assessment', questions: formattedQuestions }) });
+      const response = await apiFetch(`/api/banks/${bankId}`, { method: 'PUT', body: JSON.stringify({ title, description, category: 'AI Assessment', questions: formattedQuestions }) });
       
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Backend Error`);
@@ -181,13 +204,16 @@ export default function EditTrainingModulePage() {
     }
   };
 
-  if (isLoading) return <div className="p-10 text-center animate-pulse">Loading...</div>;
+  if (isLoading) return <div className="p-10 text-center animate-pulse text-slate-500 font-bold">Loading assessment blueprint...</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 pb-28 text-sm">
       <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
         <div><h2 className="font-bold text-slate-800">Edit Module</h2></div>
-        <button onClick={handleSubmit} disabled={isSubmitting} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm">{isSubmitting ? 'Saving...' : 'Save'}</button>
+        <button onClick={handleSubmit} disabled={isSubmitting} className="flex items-center justify-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm disabled:opacity-75 transition-all">
+          {isSubmitting && <Spinner />}
+          {isSubmitting ? 'Saving...' : 'Save'}
+        </button>
       </div>
 
       <section className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -246,8 +272,9 @@ export default function EditTrainingModulePage() {
                   </div>
                 )}
                 {obj.questionType === 'RAPID_SORT' && (
-                  <button type="button" onClick={(e) => { e.preventDefault(); handleGenerateAI(index); }} disabled={obj.isGeneratingAi} className="px-4 py-2.5 text-white text-xs font-black rounded-lg shadow-sm w-full md:w-auto bg-purple-600 mb-[1px]">
-                    {obj.isGeneratingAi ? 'Generating...' : '✨ Generate'}
+                  <button type="button" onClick={(e) => { e.preventDefault(); handleGenerateAI(index); }} disabled={obj.isGeneratingAi} className="flex items-center justify-center gap-2 px-4 py-2.5 text-white text-xs font-black rounded-lg shadow-sm w-full md:w-auto bg-purple-600 mb-[1px] disabled:opacity-75 transition-all">
+                    {obj.isGeneratingAi ? <Spinner /> : '✨'}
+                    {obj.isGeneratingAi ? 'Generating...' : 'Generate'}
                   </button>
                 )}
               </div>
@@ -259,7 +286,6 @@ export default function EditTrainingModulePage() {
                     {obj.questionType === 'RAPID_SORT' && <button type="button" onClick={() => handleObjectiveChange(index, 'words', [])} className="text-rose-400 hover:text-rose-600">Clear</button>}
                   </span>
                   
-                  {/* EXPANDABLE, CENTERED PREVIEW BOX FOR MOBILE & DESKTOP */}
                   <div className="relative group">
                     <div 
                       id={`preview-box-${index}`}
@@ -273,7 +299,6 @@ export default function EditTrainingModulePage() {
                       ))}
                     </div>
                     
-                    {/* Explicit Mobile Touch-Drag Handle */}
                     <div 
                       onTouchStart={(e) => {
                         startY.current[index] = e.touches[0].clientY;
