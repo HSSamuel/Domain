@@ -38,6 +38,8 @@ export default function AdminDashboard() {
   }, []);
 
   async function fetchBanks() {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await apiFetch(`/api/banks`);
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
@@ -45,7 +47,9 @@ export default function AdminDashboard() {
       setBanks(data);
     } catch (err: any) {
       console.error('Failed to fetch banks:', err);
-      setError(err.message || 'Failed to load question banks');
+      const errorMsg = 'Cannot connect to the server. Please check your connection.';
+      setError(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -115,9 +119,15 @@ export default function AdminDashboard() {
             {[1, 2, 3].map((n) => (<div key={n} className="h-64 bg-white rounded-3xl border border-slate-200 shadow-sm"></div>))}
           </div>
         ) : error ? (
-          <div className="p-6 bg-rose-50 border border-rose-200 rounded-3xl text-center space-y-3">
-            <div className="text-rose-700 font-bold text-lg">Connection Error</div>
-            <p className="text-rose-600 text-sm">{error}</p>
+          <div className="p-8 bg-rose-50/50 border border-rose-200 rounded-3xl text-center space-y-4 shadow-sm flex flex-col items-center">
+            <span className="text-4xl">🔌</span>
+            <div>
+              <div className="text-rose-800 font-black text-xl">Connection Lost</div>
+              <p className="text-rose-600 font-medium text-sm mt-1">{error}</p>
+            </div>
+            <button onClick={fetchBanks} className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95">
+              Retry Connection
+            </button>
           </div>
         ) : banks.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 bg-white border border-slate-200 rounded-3xl border-dashed shadow-sm">

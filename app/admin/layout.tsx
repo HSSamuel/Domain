@@ -57,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   let pageTitle = 'Admin Portal';
   if (pathname === '/admin/dashboard') pageTitle = 'Dashboard';
   if (pathname === '/admin/create-bank') pageTitle = 'Create Assessment';
-  if (pathname === '/admin/objective-builder') pageTitle = 'Objective Builder';
+  if (pathname === '/admin/objective-builder') pageTitle = 'Objective Studio';
   if (pathname.includes('/admin/edit-bank')) pageTitle = 'Edit Assessment';
   if (pathname.includes('/admin/live/') && !pathname.includes('/analytics')) pageTitle = 'Live Control Room';
   if (pathname.includes('/analytics')) pageTitle = 'Session Analytics';
@@ -76,7 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <nav className="flex-1 flex flex-col space-y-2">
               <Link href="/admin/dashboard" onClick={() => setIsMobileMenuOpen(false)} className={`p-3 rounded-xl font-bold flex items-center gap-3 ${pathname === '/admin/dashboard' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-800'}`}>Dashboard</Link>
               
-              <Link href="/admin/objective-builder" onClick={() => setIsMobileMenuOpen(false)} className={`p-3 rounded-xl font-bold flex items-center gap-3 ${pathname === '/admin/objective-builder' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-800'}`}>Objective Builder</Link>
+              <Link href="/admin/objective-builder" onClick={() => setIsMobileMenuOpen(false)} className={`p-3 rounded-xl font-bold flex items-center gap-3 ${pathname === '/admin/objective-builder' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-800'}`}>Objective Studio</Link>
 
               <Link href="/admin/create-bank" onClick={() => setIsMobileMenuOpen(false)} className={`p-3 rounded-xl font-bold flex items-center gap-3 ${pathname === '/admin/create-bank' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-800'}`}>Create Assessment</Link>
               
@@ -117,7 +117,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           
           <Link href="/admin/objective-builder" className={`flex items-center p-2.5 rounded-lg transition-colors group ${pathname === '/admin/objective-builder' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-800'} ${isSidebarOpen ? '' : 'justify-center'}`}>
             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            {isSidebarOpen && <span className="ml-3 font-bold text-sm whitespace-nowrap">Objective Builder</span>}
+            {isSidebarOpen && <span className="ml-3 font-bold text-sm whitespace-nowrap">Objective Studio</span>}
           </Link>
 
           <Link href="/admin/create-bank" className={`flex items-center p-2.5 rounded-lg transition-colors group ${pathname === '/admin/create-bank' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-800'} ${isSidebarOpen ? '' : 'justify-center'}`}>

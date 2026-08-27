@@ -33,6 +33,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 relative overflow-hidden selection:bg-indigo-100">
+      
       <div className="absolute top-0 inset-x-0 h-full overflow-hidden -z-10 pointer-events-none fixed">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-[pulse_6s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
         <div className="absolute top-40 -left-20 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-[pulse_8s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
@@ -48,7 +49,7 @@ export default function LandingPage() {
           <a href="#methodology" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Methodology</a>
           <a href="#support" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Support</a>
           <Link href={portalRoute} className="text-sm font-black text-white hover:text-white bg-slate-900 hover:bg-indigo-600 transition-all px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95">
-            Facilitator Portal &rarr;
+            Facilitator's Portal &rarr;
           </Link>
         </nav>
 
@@ -66,7 +67,7 @@ export default function LandingPage() {
           <a href="#methodology" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Methodology</a>
           <a href="#support" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Support</a>
           <button onClick={() => router.push(portalRoute)} className="mt-4 text-center text-sm font-black text-white bg-slate-900 hover:bg-indigo-600 py-4 rounded-xl transition-colors shadow-md">
-            Facilitator Portal
+            Facilitator's Portal
           </button>
         </div>
       </div>
@@ -164,7 +165,7 @@ export default function LandingPage() {
               Contact IT Support
             </button>
             <button onClick={() => router.push(portalRoute)} className="w-full sm:w-auto bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95">
-              View Facilitator Guide
+              View Facilitator's Guide
             </button>
           </div>
         </div>

@@ -203,7 +203,12 @@ export default function AdminLiveControlDashboard() {
           <div className="flex flex-wrap w-full xl:w-auto gap-3 items-center">
             {sessionStatus !== 'COMPLETED' && hasMoreQuestions && sessionStatus !== 'ACTIVE_QUESTION' && (
                <select value={customTimeOverride} onChange={(e) => setCustomTimeOverride(Number(e.target.value))} className="px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl cursor-pointer shadow-sm">
-                 <option value={30}>Time: 30s</option><option value={60}>Time: 60s</option><option value={120}>Time: 120s (2m)</option><option value={180}>Time: 180s (3m)</option><option value={300}>Time: 300s (5m)</option>
+                 <option value={30}>Time: 30s</option>
+                 <option value={60}>Time: 60s</option>
+                 <option value={120}>Time: 120s (2m)</option>
+                 <option value={180}>Time: 180s (3m)</option>
+                 <option value={300}>Time: 300s (5m)</option>
+                 <option value={600}>Time: 600s (10m)</option>
                </select>
             )}
 
@@ -286,7 +291,6 @@ export default function AdminLiveControlDashboard() {
 
             <div className="text-center space-y-1 w-full px-4">
               <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Or visit URL</p>
-              {/* FIX: Reduced from text-2xl/4xl down to text-xl/2xl */}
               <p className="text-xl md:text-2xl font-black text-indigo-600 tracking-tight break-words">{joinUrl.replace(/^https?:\/\//, '')}</p>
             </div>
 

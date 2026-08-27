@@ -24,7 +24,7 @@ export default function FacilitatorLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // FIX: Auto-redirect if already logged in
+  // Auto-redirect if already logged in
   useEffect(() => {
     if (localStorage.getItem('domainAssess_auth') === 'granted') {
       router.push('/admin/dashboard');
@@ -90,19 +90,49 @@ export default function FacilitatorLogin() {
             {!isLoginMode && (
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block pl-1">Full Name</label>
-                <input type="text" required placeholder="First & Last name" className="w-full px-4 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all" value={name} onChange={(e) => { setName(e.target.value); setError(''); }} />
+                <input 
+                  type="text" 
+                  name="name"
+                  autoComplete="name"
+                  required 
+                  suppressHydrationWarning
+                  placeholder="First & Last name" 
+                  className="w-full px-4 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all" 
+                  value={name} 
+                  onChange={(e) => { setName(e.target.value); setError(''); }} 
+                />
               </div>
             )}
 
             <div>
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block pl-1">Email Address</label>
-              <input type="email" required placeholder="you@organization.com" className="w-full px-4 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} />
+              <input 
+                type="email" 
+                name="email"
+                autoComplete="email"
+                required 
+                suppressHydrationWarning
+                placeholder="your@email.com" 
+                className="w-full px-4 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all" 
+                value={email} 
+                onChange={(e) => { setEmail(e.target.value); setError(''); }} 
+              />
             </div>
 
             <div>
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block pl-1">Password</label>
               <div className="relative">
-                <input type={showPassword ? "text" : "password"} required placeholder="••••••••" className={`w-full pl-4 pr-12 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all ${!showPassword && password ? 'tracking-widest' : ''}`} value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} />
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password"
+                  autoComplete={isLoginMode ? "current-password" : "new-password"}
+                  required 
+                  suppressHydrationWarning
+                  placeholder="••••••••" 
+                  className={`w-full pl-4 pr-12 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all ${!showPassword && password ? 'tracking-widest' : ''}`} 
+                  value={password} 
+                  onChange={(e) => { setPassword(e.target.value); setError(''); }} 
+                />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
                   {showPassword ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
