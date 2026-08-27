@@ -1,5 +1,5 @@
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000, https://domainassess.netlify.app';
   const token = typeof window !== 'undefined' ? localStorage.getItem('domainassess_admin_token') : null;
 
   const headers: Record<string, string> = {
