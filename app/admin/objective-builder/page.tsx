@@ -13,22 +13,23 @@ const Spinner = () => (
   </svg>
 );
 
-interface Objective {
-  domain: string;
-  level: string;
-  verb: string;
-  context: string;
-  alternatives: string[];
-}
-
+// FIX: Added 'chart' back to the type union to satisfy TypeScript's strict type checking
 interface VisualSuggestion {
-  type: 'image' | 'smart_art' | 'process_flow' | 'none';
+  type: 'image' | 'smart_art' | 'process_flow' | 'chart' | 'none';
   data: {
     keyword?: string;
     items?: { title: string; description: string }[];
     steps?: string[];
     chartData?: { label: string; value: number }[];
   };
+}
+
+interface Objective {
+  domain: string;
+  level: string;
+  verb: string;
+  context: string;
+  alternatives: string[];
 }
 
 interface Slide {
@@ -171,11 +172,11 @@ export default function ObjectiveBuilderPage() {
   
       const fetchImageBase64 = async (keyword: string): Promise<string | null> => {
         const sanitizedKeyword = keyword.replace(/[^a-zA-Z0-9\s]/g, '').substring(0, 100);
-        const encoded = encodeURIComponent(`corporate professional ${sanitizedKeyword}`);
+        const encoded = encodeURIComponent(`photorealistic professional corporate aesthetic, ${sanitizedKeyword}, high quality`);
         
         const seed = Math.floor(Math.random() * 1000000);
         const primaryUrl = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=600&nologo=true&seed=${seed}`;
-        const fallbackUrl = `https://loremflickr.com/800/600/corporate,office?lock=${seed}`;
+        const fallbackUrl = `https://loremflickr.com/800/600/business?lock=${seed}`;
 
         const fetchWithTimeout = async (url: string, timeoutMs: number) => {
           const controller = new AbortController();
@@ -261,7 +262,6 @@ export default function ObjectiveBuilderPage() {
             const stepCount = visData.steps.length;
             const stepWidth = 4.3 / stepCount;
             visData.steps.forEach((step, i) => {
-              // BUG FIX: Use addText with the 'shape' property to guarantee text rendering inside the arrow
               // @ts-ignore
               s.addText(step.toUpperCase(), {
                 shape: pptx.ShapeType.rightArrow,
@@ -398,12 +398,27 @@ export default function ObjectiveBuilderPage() {
       );
     }
 
+    if (suggestion.type === 'chart' && suggestion.data.chartData) {
+      const maxVal = Math.max(...suggestion.data.chartData.map(d => d.value));
+      return (
+        <div className="flex items-end justify-center h-full gap-3 pt-6">
+          {suggestion.data.chartData.map((d, i) => (
+            <div key={i} className="flex flex-col items-center gap-2 group">
+              <span className="text-[10px] font-black text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">{d.value}</span>
+              <div className="w-8 bg-indigo-500 rounded-t-md transition-all" style={{ height: `${(d.value / maxVal) * 100}px` }}></div>
+              <span className="text-[9px] font-bold text-slate-500 uppercase truncate max-w-[50px]">{d.label}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     if (suggestion.type === 'image' && suggestion.data.keyword) {
       const sanitizedKeyword = suggestion.data.keyword.replace(/[^a-zA-Z0-9\s]/g, '').substring(0, 100);
-      const encodedKeyword = encodeURIComponent(`corporate professional ${sanitizedKeyword}`);
+      const encodedKeyword = encodeURIComponent(`photorealistic professional corporate aesthetic, ${sanitizedKeyword}, high quality`);
       
       const primaryUrl = `https://image.pollinations.ai/prompt/${encodedKeyword}?width=800&height=600&nologo=true&seed=${seed}`;
-      const fallbackUrl = `https://loremflickr.com/800/600/corporate,office?lock=${seed}`;
+      const fallbackUrl = `https://loremflickr.com/800/600/business?lock=${seed}`;
 
       return (
         <div className="relative w-full h-full min-h-[160px] flex items-center justify-center overflow-hidden rounded-lg group bg-slate-100">
