@@ -7,9 +7,11 @@ export default function BackToTop() {
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
+      // Safely cast to Document or Element to satisfy TypeScript
+      const target = e.target as Document | Element;
+      
       // Get the scroll position whether it's the window or a nested admin layout container
-      const scrollTop = target === document ? document.documentElement.scrollTop : target?.scrollTop || 0;
+      const scrollTop = target === document ? document.documentElement.scrollTop : (target as Element)?.scrollTop || 0;
       
       // Reduced threshold to 150px so it appears a bit earlier
       if (scrollTop > 150) {

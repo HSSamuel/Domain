@@ -5,12 +5,11 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
-  skipWaiting: true,
+  // skipWaiting has been removed to satisfy TypeScript PluginOptions
 });
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Silence Next.js 16 Turbopack warning caused by the PWA plugin's internal Webpack usage
   turbopack: {},
 };
 
