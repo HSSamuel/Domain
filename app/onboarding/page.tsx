@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -13,20 +13,13 @@ const Spinner = () => (
 
 export default function Onboarding() {
   const router = useRouter();
-  
-  // FIX: Auto-redirect logic
-  const [targetUrl, setTargetUrl] = useState('/admin/login');
   const [isNavigating, setIsNavigating] = useState(false);
 
-  useEffect(() => {
-    if (localStorage.getItem('domainAssess_auth') === 'granted') {
-      setTargetUrl('/admin/dashboard');
-    }
-  }, []);
-
+  // FIXED: Synchronous evaluation on click prevents hydration misrouting
   const handleGetStarted = () => {
     setIsNavigating(true);
-    router.push(targetUrl);
+    const isAuth = typeof window !== 'undefined' && localStorage.getItem('domainAssess_auth') === 'granted';
+    router.push(isAuth ? '/admin/dashboard' : '/admin/login');
   };
 
   return (
@@ -61,9 +54,9 @@ export default function Onboarding() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-16">
-          {/* Step 1 */}
-          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-md border border-slate-200 p-8 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-            <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-purple-100 shadow-inner">
+          {/* Step 1 - Purple Accent */}
+          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-md border border-slate-200 hover:bg-gradient-to-b hover:from-purple-50/60 hover:to-white/80 hover:border-purple-200 p-8 rounded-[2rem] shadow-sm hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_10px_40px_-15px_rgba(168,85,247,0.25)] group">
+            <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 border border-purple-100 shadow-inner">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
             </div>
             <h3 className="text-xl font-black mb-3 text-slate-800">1. Generate with AI</h3>
@@ -72,9 +65,9 @@ export default function Onboarding() {
             </p>
           </div>
 
-          {/* Step 2 */}
-          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-md border border-slate-200 p-8 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-blue-100 shadow-inner">
+          {/* Step 2 - Blue Accent */}
+          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-md border border-slate-200 hover:bg-gradient-to-b hover:from-blue-50/60 hover:to-white/80 hover:border-blue-200 p-8 rounded-[2rem] shadow-sm hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_10px_40px_-15px_rgba(59,130,246,0.25)] group">
+            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 border border-blue-100 shadow-inner">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <h3 className="text-xl font-black mb-3 text-slate-800">2. Launch Live Arena</h3>
@@ -83,10 +76,10 @@ export default function Onboarding() {
             </p>
           </div>
 
-          {/* Step 3 */}
-          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-md border border-slate-200 p-8 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-emerald-100 shadow-inner">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+          {/* Step 3 - Emerald Accent */}
+          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-md border border-slate-200 hover:bg-gradient-to-b hover:from-emerald-50/60 hover:to-white/80 hover:border-emerald-200 p-8 rounded-[2rem] shadow-sm hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_10px_40px_-15px_rgba(16,185,129,0.25)] group">
+            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 border border-emerald-100 shadow-inner">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012-2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             </div>
             <h3 className="text-xl font-black mb-3 text-slate-800">3. Analyze Gaps</h3>
             <p className="text-slate-500 leading-relaxed font-medium text-sm">

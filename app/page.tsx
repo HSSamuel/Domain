@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from './components/ToastProvider';
 
@@ -11,16 +10,14 @@ export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   
-  // FIX: Dynamic routing based on Auth status
-  const [portalRoute, setPortalRoute] = useState('/onboarding');
   const router = useRouter();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (localStorage.getItem('domainAssess_auth') === 'granted') {
-      setPortalRoute('/admin/dashboard');
-    }
-  }, []);
+  // FIXED: Synchronous evaluation on click prevents hydration misrouting
+  const handlePortalNavigation = () => {
+    const isAuth = typeof window !== 'undefined' && localStorage.getItem('domainAssess_auth') === 'granted';
+    router.push(isAuth ? '/admin/dashboard' : '/onboarding');
+  };
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,9 +45,9 @@ export default function LandingPage() {
         <nav className="hidden md:flex items-center gap-6">
           <a href="#methodology" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Methodology</a>
           <a href="#support" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Support</a>
-          <Link href={portalRoute} className="text-sm font-black text-white hover:text-white bg-slate-900 hover:bg-indigo-600 transition-all px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95">
+          <button onClick={handlePortalNavigation} className="text-sm font-black text-white hover:text-white bg-slate-900 hover:bg-indigo-600 transition-all px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95">
             Facilitator's Portal &rarr;
-          </Link>
+          </button>
         </nav>
 
         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none bg-white/80 rounded-xl border border-slate-200 backdrop-blur-md active:scale-95 transition-transform">
@@ -66,7 +63,7 @@ export default function LandingPage() {
         <div className="flex flex-col px-6 py-6 gap-2">
           <a href="#methodology" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Methodology</a>
           <a href="#support" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Support</a>
-          <button onClick={() => router.push(portalRoute)} className="mt-4 text-center text-sm font-black text-white bg-slate-900 hover:bg-indigo-600 py-4 rounded-xl transition-colors shadow-md">
+          <button onClick={() => { setIsMenuOpen(false); handlePortalNavigation(); }} className="mt-4 text-center text-sm font-black text-white bg-slate-900 hover:bg-indigo-600 py-4 rounded-xl transition-colors shadow-md">
             Facilitator's Portal
           </button>
         </div>
@@ -120,8 +117,9 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 hover:border-blue-200 transition-colors flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+            {/* Cognitive Domain - Blue Accent */}
+            <div className="bg-slate-50 hover:bg-gradient-to-b hover:from-blue-50/60 hover:to-white p-8 rounded-[2rem] border border-slate-100 hover:border-blue-200 transition-all duration-500 hover:shadow-[0_10px_40px_-15px_rgba(59,130,246,0.2)] flex flex-col items-center text-center group">
+              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
               </div>
               <h3 className="text-xl font-black text-slate-900 mb-3">Cognitive Domain</h3>
@@ -130,8 +128,9 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 hover:border-emerald-200 transition-colors flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
+            {/* Psychomotor Domain - Emerald Accent */}
+            <div className="bg-slate-50 hover:bg-gradient-to-b hover:from-emerald-50/60 hover:to-white p-8 rounded-[2rem] border border-slate-100 hover:border-emerald-200 transition-all duration-500 hover:shadow-[0_10px_40px_-15px_rgba(16,185,129,0.2)] flex flex-col items-center text-center group">
+              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
               <h3 className="text-xl font-black text-slate-900 mb-3">Psychomotor Domain</h3>
@@ -140,8 +139,9 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 hover:border-rose-200 transition-colors flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center mb-6">
+            {/* Affective Domain - Rose Accent */}
+            <div className="bg-slate-50 hover:bg-gradient-to-b hover:from-rose-50/60 hover:to-white p-8 rounded-[2rem] border border-slate-100 hover:border-rose-200 transition-all duration-500 hover:shadow-[0_10px_40px_-15px_rgba(244,63,94,0.2)] flex flex-col items-center text-center group">
+              <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
               </div>
               <h3 className="text-xl font-black text-slate-900 mb-3">Affective Domain</h3>
@@ -164,7 +164,7 @@ export default function LandingPage() {
             <button onClick={() => setIsSupportModalOpen(true)} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95">
               Contact IT Support
             </button>
-            <button onClick={() => router.push(portalRoute)} className="w-full sm:w-auto bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95">
+            <button onClick={handlePortalNavigation} className="w-full sm:w-auto bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-2.5 px-8 rounded-xl shadow-sm transition-all text-sm active:scale-95">
               View Facilitator's Guide
             </button>
           </div>

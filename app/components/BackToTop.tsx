@@ -40,7 +40,7 @@ export default function BackToTop() {
     <button
       onClick={scrollToTop}
       aria-label="Back to top"
-      className={`fixed bottom-1 right-1 z-[90] w-7 h-7 bg-indigo-600 text-white rounded-full shadow-[0_8px_20px_rgba(79,70,229,0.4)] hover:bg-indigo-700 hover:-translate-y-1 transition-all duration-300 active:scale-95 flex items-center justify-center ${
+      className={`fixed bottom-3 right-3 z-[90] w-7 h-7 bg-indigo-600 text-white rounded-full shadow-[0_8px_20px_rgba(79,70,229,0.4)] hover:bg-indigo-700 hover:-translate-y-1 transition-all duration-300 active:scale-95 flex items-center justify-center ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
       }`}
     >

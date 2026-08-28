@@ -16,15 +16,16 @@ export default function FacilitatorLogin() {
   const router = useRouter();
   
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Auto-redirect if already logged in
   useEffect(() => {
     if (localStorage.getItem('domainAssess_auth') === 'granted') {
       router.push('/admin/dashboard');
@@ -35,9 +36,24 @@ export default function FacilitatorLogin() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccessMsg('');
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      if (isForgotPasswordMode) {
+        const res = await fetch(`${baseUrl}/api/auth/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to request password reset.');
+        setSuccessMsg('If an account exists, a recovery link has been sent to your email.');
+        setIsLoading(false);
+        return;
+      }
+
       const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
       const payload = isLoginMode ? { email, password } : { name, email, password };
 
@@ -74,10 +90,14 @@ export default function FacilitatorLogin() {
           </div>
           
           <h1 className="text-2xl font-black text-center text-slate-900 mb-1.5">
-            {isLoginMode ? 'Facilitator Portal' : 'Create Account'}
+            {isForgotPasswordMode ? 'Reset Password' : isLoginMode ? 'Facilitator Portal' : 'Create Account'}
           </h1>
           <p className="text-center text-slate-500 text-sm font-medium mb-6">
-            {isLoginMode ? 'Sign in to access your curriculum dashboard.' : 'Set up your secure workspace.'}
+            {isForgotPasswordMode 
+              ? 'Enter your email to receive a secure recovery link.' 
+              : isLoginMode 
+                ? 'Sign in to access your curriculum dashboard.' 
+                : 'Set up your secure workspace.'}
           </p>
 
           {error && (
@@ -85,9 +105,14 @@ export default function FacilitatorLogin() {
               {error}
             </div>
           )}
+          {successMsg && (
+            <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold rounded-xl text-center">
+              {successMsg}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
-            {!isLoginMode && (
+            {!isLoginMode && !isForgotPasswordMode && (
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block pl-1">Full Name</label>
                 <input 
@@ -115,48 +140,67 @@ export default function FacilitatorLogin() {
                 placeholder="your@email.com" 
                 className="w-full px-4 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all" 
                 value={email} 
-                onChange={(e) => { setEmail(e.target.value); setError(''); }} 
+                onChange={(e) => { setEmail(e.target.value); setError(''); setSuccessMsg(''); }} 
               />
             </div>
 
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 block pl-1">Password</label>
-              <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  name="password"
-                  autoComplete={isLoginMode ? "current-password" : "new-password"}
-                  required 
-                  suppressHydrationWarning
-                  placeholder="••••••••" 
-                  className={`w-full pl-4 pr-12 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all ${!showPassword && password ? 'tracking-widest' : ''}`} 
-                  value={password} 
-                  onChange={(e) => { setPassword(e.target.value); setError(''); }} 
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            {!isForgotPasswordMode && (
+              <div>
+                <div className="flex justify-between items-end mb-1 pl-1 pr-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Password</label>
+                  {isLoginMode && (
+                    <button type="button" onClick={() => { setIsForgotPasswordMode(true); setError(''); }} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                      Forgot Password?
+                    </button>
                   )}
-                </button>
+                </div>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    name="password"
+                    autoComplete={isLoginMode ? "current-password" : "new-password"}
+                    required 
+                    suppressHydrationWarning
+                    placeholder="••••••••" 
+                    className={`w-full pl-4 pr-12 py-2.5 border-2 rounded-xl text-sm font-bold text-slate-800 border-slate-200 focus:border-indigo-500 focus:outline-none transition-all ${!showPassword && password ? 'tracking-widest' : ''}`} 
+                    value={password} 
+                    onChange={(e) => { setPassword(e.target.value); setError(''); }} 
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             <button type="submit" disabled={isLoading} className="w-full flex items-center justify-center bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-95 mt-2 text-sm">
               {isLoading && <Spinner />}
-              {isLoading ? 'Authenticating...' : isLoginMode ? 'Secure Sign In' : 'Create Workspace'}
+              {isLoading ? 'Processing...' : isForgotPasswordMode ? 'Send Recovery Link' : isLoginMode ? 'Secure Sign In' : 'Create Workspace'}
             </button>
           </form>
 
           <div className="mt-5 pt-5 border-t border-slate-100 text-center">
-            <p className="text-sm font-medium text-slate-500">
-              {isLoginMode ? "Don't have an account?" : "Already have an account?"}{' '}
-              <button type="button" onClick={() => { setIsLoginMode(!isLoginMode); setError(''); }} className="text-indigo-600 font-bold hover:underline">
-                {isLoginMode ? 'Sign up here' : 'Sign in here'}
-              </button>
-            </p>
+            {isForgotPasswordMode ? (
+              <p className="text-sm font-medium text-slate-500">
+                Remembered your password?{' '}
+                <button type="button" onClick={() => { setIsForgotPasswordMode(false); setError(''); setSuccessMsg(''); }} className="text-indigo-600 font-bold hover:underline">
+                  Sign in here
+                </button>
+              </p>
+            ) : (
+              <p className="text-sm font-medium text-slate-500">
+                {isLoginMode ? "Don't have an account?" : "Already have an account?"}{' '}
+                <button type="button" onClick={() => { setIsLoginMode(!isLoginMode); setError(''); }} className="text-indigo-600 font-bold hover:underline">
+                  {isLoginMode ? 'Sign up here' : 'Sign in here'}
+                </button>
+              </p>
+            )}
           </div>
+          
           <div className="mt-4 text-center">
             <Link href="/" className="text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">&larr; Back to Home</Link>
           </div>
