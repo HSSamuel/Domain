@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setIsAuthorized(true);
       const storedName = localStorage.getItem('domainassess_admin_name');
       if (storedName) setAdminName(storedName);
-    } else if (pathname !== '/admin/login') {
+    } else if (pathname !== '/admin/login' && pathname !== '/admin/reset-password') { // FIXED: Added bypass
       router.push('/admin/login');
     }
   }, [pathname, router]);
@@ -41,7 +41,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/admin/login');
   };
 
-  if (!isAuthorized && pathname !== '/admin/login') {
+  // FIXED: Added bypass for the loading screen
+  if (!isAuthorized && pathname !== '/admin/login' && pathname !== '/admin/reset-password') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-500">
         <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -50,7 +51,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (pathname === '/admin/login') {
+  // FIXED: Added bypass to render the children without the dashboard layout wrapper
+  if (pathname === '/admin/login' || pathname === '/admin/reset-password') {
     return <>{children}</>;
   }
 
