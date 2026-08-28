@@ -175,7 +175,7 @@ export default function AdminLiveControlDashboard() {
       <div className="max-w-screen-2xl w-full mx-auto space-y-6">
         
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center bg-white p-4 lg:p-5 rounded-3xl border border-slate-200 shadow-sm gap-5">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 shrink-0">
             <div 
               className="bg-white p-3 rounded-2xl border hidden sm:block relative group overflow-hidden cursor-pointer"
               onClick={() => setShowBigQR(true)}
@@ -200,9 +200,10 @@ export default function AdminLiveControlDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-wrap w-full xl:w-auto gap-3 items-center">
+          {/* FIXED: Replaced flex-wrap with flex-row shrink-0 and added overflow-x-auto */}
+          <div className="flex flex-row items-center gap-3 shrink-0 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 hide-scrollbar">
             {sessionStatus !== 'COMPLETED' && hasMoreQuestions && sessionStatus !== 'ACTIVE_QUESTION' && (
-               <select value={customTimeOverride} onChange={(e) => setCustomTimeOverride(Number(e.target.value))} className="px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl cursor-pointer shadow-sm">
+               <select value={customTimeOverride} onChange={(e) => setCustomTimeOverride(Number(e.target.value))} className="px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl cursor-pointer shadow-sm whitespace-nowrap">
                  <option value={30}>Time: 30s</option>
                  <option value={60}>Time: 60s</option>
                  <option value={120}>Time: 120s (2m)</option>
@@ -213,11 +214,11 @@ export default function AdminLiveControlDashboard() {
             )}
 
             {sessionStatus !== 'COMPLETED' && hasMoreQuestions ? (
-              <button onClick={handleTriggerNextQuestion} disabled={sessionStatus === 'ACTIVE_QUESTION'} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-bold rounded-xl shadow-sm transition-all">
+              <button onClick={handleTriggerNextQuestion} disabled={sessionStatus === 'ACTIVE_QUESTION'} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-bold rounded-xl shadow-sm transition-all whitespace-nowrap">
                 {currentQuestionIndex === -1 ? 'Launch Assessment' : sessionStatus === 'ACTIVE_QUESTION' ? 'In Progress' : 'Next Question'}
               </button>
             ) : null}
-            <button onClick={() => setIsConfirmingEnd(true)} className="px-6 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl shadow-sm">
+            <button onClick={() => setIsConfirmingEnd(true)} className="px-6 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl shadow-sm whitespace-nowrap">
               End Session
             </button>
           </div>
