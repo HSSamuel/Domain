@@ -37,6 +37,10 @@ export default function AdminLiveControlDashboard() {
   const [isConcluding, setIsConcluding] = useState(false);
   const [showBigQR, setShowBigQR] = useState(false);
 
+  // FIXED: Added copy states for interactive feedback
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedPin, setCopiedPin] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostIp = process.env.NEXT_PUBLIC_HOST_IP;
@@ -139,6 +143,18 @@ export default function AdminLiveControlDashboard() {
     socket.emit('admin_end_session', { sessionCode });
   };
 
+  // FIXED: Copy to clipboard function
+  const handleCopy = (text: string, type: 'url' | 'pin') => {
+    navigator.clipboard.writeText(text);
+    if (type === 'url') {
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
+    } else {
+      setCopiedPin(true);
+      setTimeout(() => setCopiedPin(false), 2000);
+    }
+  };
+
   const downloadQR = () => {
     const svg = document.getElementById('hidden-hq-qr');
     if (!svg) return;
@@ -174,34 +190,71 @@ export default function AdminLiveControlDashboard() {
 
       <div className="max-w-screen-2xl w-full mx-auto space-y-6">
         
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center bg-white p-4 lg:p-5 rounded-3xl border border-slate-200 shadow-sm gap-5">
-          <div className="flex items-center gap-5 shrink-0">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center bg-white p-4 lg:p-5 rounded-3xl border border-slate-200 shadow-sm gap-5 overflow-hidden">
+          
+          <div className="flex items-center gap-3 sm:gap-5 shrink-0 min-w-0 w-full xl:w-auto">
+            {/* FIXED: Removed 'hidden' so QR code shows on mobile, adjusted sizes for responsiveness */}
             <div 
-              className="bg-white p-3 rounded-2xl border hidden sm:block relative group overflow-hidden cursor-pointer"
+              className="bg-white p-1.5 md:p-3 rounded-xl md:rounded-2xl border relative group overflow-hidden cursor-pointer shrink-0 w-[64px] h-[64px] md:w-[90px] md:h-[90px]"
               onClick={() => setShowBigQR(true)}
             >
               {joinUrl && (
                 <>
-                  <QRCode value={joinUrl} size={256} style={{ width: '90px', height: '90px' }} bgColor="#ffffff" fgColor="#0f172a" level="L" />
+                  <QRCode value={joinUrl} style={{ width: '100%', height: '100%' }} bgColor="#ffffff" fgColor="#0f172a" level="L" />
                   <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-200">
-                    <svg className="w-6 h-6 text-white drop-shadow-md mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Expand</span>
+                    <svg className="w-5 h-5 text-white drop-shadow-md mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                    <span className="hidden md:block text-[10px] font-black text-white uppercase tracking-widest">Expand</span>
                   </div>
                 </>
               )}
             </div>
             
-            <div className="space-y-2">
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 leading-none">Host Control Room</h1>
-              <div className="flex flex-col gap-1.5 pt-1">
-                <span className="text-slate-500 text-sm font-medium">Join at: <strong className="text-slate-800">{joinUrl.replace(/^https?:\/\//, '')}</strong></span>
-                <span className="text-slate-500 text-sm font-medium">PIN: <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-black">{sessionCode}</span></span>
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <h1 className="text-xl md:text-3xl font-black tracking-tight text-slate-900 leading-none truncate">Host Control Room</h1>
+              
+              <div className="flex flex-col gap-1.5 pt-1 w-full">
+                {/* FIXED: URL and PIN copy functions with truncation for mobile */}
+                <div 
+                  onClick={() => handleCopy(joinUrl, 'url')}
+                  className="flex items-center gap-1.5 text-slate-500 text-[11px] sm:text-sm font-medium cursor-pointer group/copy w-full"
+                  title="Copy URL"
+                >
+                  <span className="shrink-0">Join at:</span>
+                  <strong className="text-slate-800 truncate group-hover/copy:text-indigo-600 transition-colors">
+                    {joinUrl.replace(/^https?:\/\//, '')}
+                  </strong>
+                  <button className="shrink-0 text-slate-400 group-hover/copy:text-indigo-600 transition-colors">
+                    {copiedUrl ? (
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    )}
+                  </button>
+                </div>
+
+                <div 
+                  onClick={() => handleCopy(sessionCode, 'pin')}
+                  className="flex items-center gap-1.5 text-slate-500 text-[11px] sm:text-sm font-medium cursor-pointer group/copy w-full"
+                  title="Copy PIN"
+                >
+                  <span className="shrink-0">PIN:</span>
+                  <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-black group-hover/copy:bg-indigo-100 transition-colors truncate">
+                    {sessionCode}
+                  </span>
+                  <button className="shrink-0 text-slate-400 group-hover/copy:text-indigo-600 transition-colors">
+                    {copiedPin ? (
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    )}
+                  </button>
+                </div>
               </div>
+
             </div>
           </div>
 
-          {/* FIXED: Replaced flex-wrap with flex-row shrink-0 and added overflow-x-auto */}
-          <div className="flex flex-row items-center gap-3 shrink-0 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 hide-scrollbar">
+          <div className="flex flex-row items-center gap-3 shrink-0 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 hide-scrollbar pt-2 xl:pt-0 border-t border-slate-100 xl:border-none mt-2 xl:mt-0">
             {sessionStatus !== 'COMPLETED' && hasMoreQuestions && sessionStatus !== 'ACTIVE_QUESTION' && (
                <select value={customTimeOverride} onChange={(e) => setCustomTimeOverride(Number(e.target.value))} className="px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl cursor-pointer shadow-sm whitespace-nowrap">
                  <option value={30}>Time: 30s</option>
@@ -256,19 +309,20 @@ export default function AdminLiveControlDashboard() {
         )}
 
         <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm">
-          <h2 className="text-lg font-black text-slate-800 mb-4">Participants (Live Leaderboard)</h2>
+          {/* FIXED: Shrunk font slightly on mobile and added truncate to remain on single line */}
+          <h2 className="text-base md:text-lg font-black text-slate-800 mb-4 truncate">Participants (Leaderboard)</h2>
           <div className="divide-y divide-slate-100">
             {participants.length === 0 ? (
               <p className="text-center py-8 text-slate-400 font-medium">Waiting for participants to join...</p>
             ) : (
               participants.map((p, idx) => (
                 <div key={p.participantId} className="py-3 flex justify-between items-center">
-                  <div className="flex items-center space-x-3">
-                    <span className="font-black text-slate-400 text-sm">#{idx + 1}</span>
-                    <span className={`block h-2.5 w-2.5 rounded-full ${p.isConnected ? 'bg-emerald-400' : 'bg-slate-300'}`} />
-                    <span className="font-bold text-slate-700 text-base">{p.name}</span>
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <span className="font-black text-slate-400 text-sm shrink-0">#{idx + 1}</span>
+                    <span className={`block h-2.5 w-2.5 rounded-full shrink-0 ${p.isConnected ? 'bg-emerald-400' : 'bg-slate-300'}`} />
+                    <span className="font-bold text-slate-700 text-base truncate">{p.name}</span>
                   </div>
-                  <span className="font-mono font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-100">{p.score} pts</span>
+                  <span className="font-mono font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-100 shrink-0 ml-2">{p.score} pts</span>
                 </div>
               ))
             )}

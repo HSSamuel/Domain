@@ -10,8 +10,9 @@ export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   
-  // FIXED: Added loading state for the portal button
   const [isPortalLoading, setIsPortalLoading] = useState(false);
+  // FIXED: Added loading state for the join session form
+  const [isJoining, setIsJoining] = useState(false);
   
   const router = useRouter();
   const { showToast } = useToast();
@@ -25,6 +26,7 @@ export default function LandingPage() {
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (pin.trim().length === 6) {
+      setIsJoining(true); // Trigger the loading spinner
       router.push(`/play/${pin}`);
     } else {
       showToast('Please enter a valid 6-character PIN', 'error');
@@ -49,7 +51,6 @@ export default function LandingPage() {
           <a href="#methodology" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Methodology</a>
           <a href="#support" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">Support</a>
           
-          {/* FIXED: Added Loading State to Desktop Button */}
           <button 
             onClick={handlePortalNavigation} 
             disabled={isPortalLoading}
@@ -83,7 +84,6 @@ export default function LandingPage() {
           <a href="#methodology" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Methodology</a>
           <a href="#support" onClick={() => setIsMenuOpen(false)} className="text-base font-bold text-slate-600 py-3 border-b border-slate-100">Support</a>
           
-          {/* FIXED: Added Loading State to Mobile Button */}
           <button 
             onClick={() => { setIsMenuOpen(false); handlePortalNavigation(); }} 
             disabled={isPortalLoading}
@@ -135,8 +135,23 @@ export default function LandingPage() {
               value={pin}
               onChange={(e) => setPin(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} 
             />
-            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-base py-3.5 rounded-xl transition-all shadow-md active:scale-95 mt-1">
-              Enter Session
+            {/* FIXED: Added disabled state, flex layout, and spinner to Enter Session button */}
+            <button 
+              type="submit" 
+              disabled={isJoining}
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:pointer-events-none text-white font-black text-base py-3.5 rounded-xl transition-all shadow-md active:scale-95 mt-1"
+            >
+              {isJoining ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Joining...
+                </>
+              ) : (
+                'Enter Session'
+              )}
             </button>
           </form>
         </div>

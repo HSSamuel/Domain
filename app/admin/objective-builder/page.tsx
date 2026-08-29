@@ -13,11 +13,9 @@ const Spinner = () => (
   </svg>
 );
 
-// FIX: Added 'chart' back to the type union to satisfy TypeScript's strict type checking
 interface VisualSuggestion {
-  type: 'image' | 'smart_art' | 'process_flow' | 'chart' | 'none';
+  type: 'smart_art' | 'process_flow' | 'chart' | 'none';
   data: {
-    keyword?: string;
     items?: { title: string; description: string }[];
     steps?: string[];
     chartData?: { label: string; value: number }[];
@@ -57,6 +55,40 @@ const getLevelNumber = (domain: string, level: string) => {
   };
   const num = levels[domain]?.[level];
   return num ? `Level ${num}: ${level}` : level;
+};
+
+// FIXED: Helper function to parse the AI text into clean HTML lists
+const renderFormattedNotes = (text: string) => {
+  if (!text) return null;
+  
+  return text.split('\n').map((paragraph, index) => {
+    const trimmed = paragraph.trim();
+    if (!trimmed) return null; // Skip empty lines
+
+    // Check if it's a bullet point
+    if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+      return (
+        <div key={index} className="pl-3 relative mt-1.5">
+          <span className="absolute left-0 top-0 text-slate-400">•</span>
+          {trimmed.substring(1).trim()}
+        </div>
+      );
+    }
+    
+    // Check if it's a numbered list (e.g., "1. ", "2. ")
+    const numberMatch = trimmed.match(/^(\d+\.)\s/);
+    if (numberMatch) {
+      return (
+        <div key={index} className="pl-4 relative mt-1.5">
+          <span className="absolute left-0 top-0 text-slate-500 font-bold">{numberMatch[1]}</span>
+          {trimmed.substring(numberMatch[0].length).trim()}
+        </div>
+      );
+    }
+
+    // Standard paragraph
+    return <p key={index} className="mt-2 first:mt-0">{trimmed}</p>;
+  });
 };
 
 export default function ObjectiveBuilderPage() {
@@ -150,7 +182,7 @@ export default function ObjectiveBuilderPage() {
       
       setPresentation(data.presentation);
       setActiveTab('PRESENTATION');
-      showToast('Presentation Deck generated with visuals!', 'success');
+      showToast('Presentation Deck generated with Smart Graphics!', 'success');
     } catch (err: any) {
       showToast(err.message || 'Error generating presentation.', 'error');
     } finally {
@@ -162,52 +194,16 @@ export default function ObjectiveBuilderPage() {
     if (!presentation) return;
     
     try {
-      showToast('Compiling PowerPoint... This may take a moment to generate images.', 'info');
+      showToast('Compiling PowerPoint...', 'info');
       const pptx = new pptxgen();
       pptx.layout = 'LAYOUT_16x9';
   
+      const themeColors = ['4F46E5', '10B981', 'F59E0B', 'EC4899', '8B5CF6'];
+
       const titleSlide = pptx.addSlide();
       titleSlide.addText(presentation.deckTitle, { x: 1, y: 2, w: 8, h: 1.5, fontSize: 36, bold: true, color: '363636', align: 'center' });
       titleSlide.addText(`Target Audience: ${audience}`, { x: 1, y: 3.5, w: 8, h: 1, fontSize: 18, color: '666666', align: 'center' });
   
-      const fetchImageBase64 = async (keyword: string): Promise<string | null> => {
-        const sanitizedKeyword = keyword.replace(/[^a-zA-Z0-9\s]/g, '').substring(0, 100);
-        const encoded = encodeURIComponent(`photorealistic professional corporate aesthetic, ${sanitizedKeyword}, high quality`);
-        
-        const seed = Math.floor(Math.random() * 1000000);
-        const primaryUrl = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=600&nologo=true&seed=${seed}`;
-        const fallbackUrl = `https://loremflickr.com/800/600/business?lock=${seed}`;
-
-        const fetchWithTimeout = async (url: string, timeoutMs: number) => {
-          const controller = new AbortController();
-          const id = setTimeout(() => controller.abort(), timeoutMs);
-          try {
-            const res = await fetch(url, { signal: controller.signal });
-            clearTimeout(id);
-            if (!res.ok) throw new Error('Bad response');
-            const blob = await res.blob();
-            return new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(blob);
-            });
-          } catch (e) {
-            clearTimeout(id);
-            throw e;
-          }
-        };
-
-        try {
-          return await fetchWithTimeout(primaryUrl, 15000);
-        } catch (e) {
-          try {
-            return await fetchWithTimeout(fallbackUrl, 5000);
-          } catch (err) {
-            return null;
-          }
-        }
-      };
-
       for (const slide of presentation.slides) {
         const s = pptx.addSlide();
         
@@ -221,7 +217,6 @@ export default function ObjectiveBuilderPage() {
           text: pt,
           options: { bullet: true, breakLine: true }
         }));
-        
         s.addText(bullets, { 
           x: 0.5, y: 1.8, w: textWidth, h: 3.4, fontSize: 16, color: '333333', valign: 'top', paraSpaceAfter: 14 
         });
@@ -232,28 +227,29 @@ export default function ObjectiveBuilderPage() {
   
           if (visType === 'smart_art' && visData.items) {
             const itemCount = visData.items.length;
-            const itemHeight = 3.2 / itemCount; 
+            const itemHeight = 3.8 / itemCount; 
             
             visData.items.forEach((item, i) => {
-              const yPos = 1.8 + (i * itemHeight);
+              const yPos = 1.6 + (i * itemHeight);
+              const color = themeColors[i % themeColors.length];
               
               // @ts-ignore
-              s.addShape(pptx.ShapeType.rect, {
-                x: 5.2, y: yPos, w: 1.3, h: itemHeight - 0.15,
-                fill: { color: "4F46E5" }, align: "center",
+              s.addShape(pptx.ShapeType.roundRect, {
+                x: 5.2, y: yPos, w: 1.5, h: itemHeight - 0.2,
+                fill: { color: color }, align: "center", rectRadius: 0.1
               });
-              s.addText(item.title, {
-                x: 5.2, y: yPos, w: 1.3, h: itemHeight - 0.15,
+              s.addText(item.title.toUpperCase(), {
+                x: 5.2, y: yPos, w: 1.5, h: itemHeight - 0.2,
                 color: "FFFFFF", fontSize: 11, bold: true, align: "center", valign: "middle"
               });
               
               // @ts-ignore
               s.addShape(pptx.ShapeType.rect, {
-                x: 6.6, y: yPos, w: 2.9, h: itemHeight - 0.15,
-                fill: { color: "F8FAFC" }, line: { color: "CBD5E1", width: 1 },
+                x: 6.8, y: yPos, w: 2.7, h: itemHeight - 0.2,
+                fill: { color: "F8FAFC" }, line: { color: color, width: 2 },
               });
               s.addText(item.description, {
-                x: 6.7, y: yPos, w: 2.7, h: itemHeight - 0.15,
+                x: 6.9, y: yPos, w: 2.5, h: itemHeight - 0.2,
                 color: "333333", fontSize: 10, align: "left", valign: "middle"
               });
             });
@@ -261,15 +257,18 @@ export default function ObjectiveBuilderPage() {
           else if (visType === 'process_flow' && visData.steps) {
             const stepCount = visData.steps.length;
             const stepWidth = 4.3 / stepCount;
+
             visData.steps.forEach((step, i) => {
+              const color = themeColors[i % themeColors.length];
+              
               // @ts-ignore
               s.addText(step.toUpperCase(), {
-                shape: pptx.ShapeType.rightArrow,
-                x: 5.2 + (i * stepWidth), 
+                shape: pptx.ShapeType.chevron,
+                x: 5.1 + (i * stepWidth), 
                 y: 2.7, 
-                w: stepWidth - 0.15, 
-                h: 0.9,
-                fill: { color: "4F46E5" },
+                w: stepWidth + 0.2,
+                h: 1.2,
+                fill: { color: color },
                 line: { color: "FFFFFF", width: 1.5 },
                 color: "FFFFFF", 
                 fontSize: 10, 
@@ -281,7 +280,7 @@ export default function ObjectiveBuilderPage() {
           }
           else if (visType === 'chart' && visData.chartData) {
             const chartData = [{
-              name: "Data",
+              name: "Metrics",
               labels: visData.chartData.map(d => d.label),
               values: visData.chartData.map(d => d.value)
             }];
@@ -289,31 +288,11 @@ export default function ObjectiveBuilderPage() {
             s.addChart(pptx.ChartType.bar, chartData, { 
               x: 5.2, y: 1.8, w: 4.3, h: 3.2, 
               showLegend: false, barDir: 'col', 
-              chartColors: ['4F46E5', '10B981', 'F59E0B'] 
+              chartColors: ['4F46E5', '10B981', 'F59E0B', 'EC4899'] 
             });
           }
-          else if (visType === 'image' && visData.keyword) {
-            const base64Data = await fetchImageBase64(visData.keyword);
-            
-            if (base64Data) {
-              // @ts-ignore
-              s.addImage({
-                data: base64Data, 
-                x: 5.2, y: 1.8, w: 4.3, h: 3.2,
-                sizing: { type: "cover", w: 4.3, h: 3.2 }
-              });
-            } else {
-              // @ts-ignore
-              s.addShape(pptx.ShapeType.rect, {
-                x: 5.2, y: 1.8, w: 4.3, h: 3.2,
-                fill: { color: "F8FAFC" }, line: { color: "CBD5E1", width: 1.5, dashType: "dash" }
-              });
-              s.addText(`📸 Image Unavailable\n"${visData.keyword}"`, {
-                x: 5.2, y: 1.8, w: 4.3, h: 3.2, color: "64748B", align: "center", fontSize: 14, bold: true
-              });
-            }
-          }
         }
+
         s.addNotes(`FACILITATOR SCRIPT:\n${slide.facilitatorNotes}\n\nENGAGEMENT PROMPT:\n${slide.engagementPrompt}`);
       }
   
@@ -359,9 +338,6 @@ export default function ObjectiveBuilderPage() {
   };
 
   const VisualPreview = ({ suggestion }: { suggestion: VisualSuggestion }) => {
-    const [imgStatus, setImgStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
-    const [seed] = useState(() => Math.floor(Math.random() * 1000000));
-
     if (!suggestion || suggestion.type === 'none') return null;
 
     if (suggestion.type === 'smart_art' && suggestion.data.items) {
@@ -409,60 +385,6 @@ export default function ObjectiveBuilderPage() {
               <span className="text-[9px] font-bold text-slate-500 uppercase truncate max-w-[50px]">{d.label}</span>
             </div>
           ))}
-        </div>
-      );
-    }
-
-    if (suggestion.type === 'image' && suggestion.data.keyword) {
-      const sanitizedKeyword = suggestion.data.keyword.replace(/[^a-zA-Z0-9\s]/g, '').substring(0, 100);
-      const encodedKeyword = encodeURIComponent(`photorealistic professional corporate aesthetic, ${sanitizedKeyword}, high quality`);
-      
-      const primaryUrl = `https://image.pollinations.ai/prompt/${encodedKeyword}?width=800&height=600&nologo=true&seed=${seed}`;
-      const fallbackUrl = `https://loremflickr.com/800/600/business?lock=${seed}`;
-
-      return (
-        <div className="relative w-full h-full min-h-[160px] flex items-center justify-center overflow-hidden rounded-lg group bg-slate-100">
-          
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 z-0">
-            {imgStatus === 'loading' ? (
-              <>
-                <svg className="animate-spin w-6 h-6 mb-2 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span className="text-[10px] font-black uppercase tracking-widest">Generating Visual...</span>
-              </>
-            ) : imgStatus === 'error' ? (
-              <>
-                <svg className="w-6 h-6 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                <span className="text-[10px] font-black uppercase tracking-widest text-center px-4">Image Unavailable<br/>(AI Timeout)</span>
-              </>
-            ) : null}
-          </div>
-
-          {imgStatus !== 'error' && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img 
-              src={primaryUrl} 
-              alt={suggestion.data.keyword}
-              onLoad={() => setImgStatus('loaded')}
-              onError={(e) => {
-                if (e.currentTarget.src !== fallbackUrl) {
-                  e.currentTarget.src = fallbackUrl;
-                } else {
-                  setImgStatus('error');
-                }
-              }}
-              className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 z-10 ${imgStatus === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
-            />
-          )}
-          
-          <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center z-20 pointer-events-none">
-            <svg className="w-6 h-6 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-            <span className="text-[10px] font-black uppercase tracking-widest text-white drop-shadow-md">
-              Keyword: "{suggestion.data.keyword}"
-            </span>
-          </div>
         </div>
       );
     }
@@ -592,7 +514,7 @@ export default function ObjectiveBuilderPage() {
                           </button>
                           
                           <div 
-                            className={`absolute left-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden transition-all ${openDropdownIndex === idx ? 'opacity-100 visible' : 'opacity-0 invisible md:group-hover/dropdown:opacity-100 md:group-hover/dropdown:visible'}`}
+                            className={`absolute left-0 md:origin-top-left top-full mt-1 w-40 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden transition-all ${openDropdownIndex === idx ? 'opacity-100 visible' : 'opacity-0 invisible md:group-hover/dropdown:opacity-100 md:group-hover/dropdown:visible'}`}
                           >
                             <div className="px-3 py-2 bg-slate-50 border-b border-slate-100 text-[9px] font-black uppercase tracking-widest text-slate-500">Taxonomy Alternatives</div>
                             {obj.alternatives.map((alt, altIdx) => (
@@ -675,7 +597,11 @@ export default function ObjectiveBuilderPage() {
                           <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
                           Facilitator Script
                         </h5>
-                        <p className="text-[11.5px] font-medium text-slate-600 leading-relaxed italic text-justify hyphens-auto">{slide.facilitatorNotes}</p>
+                        
+                        {/* FIXED: We now pass the AI script through our custom parser for perfect list formatting */}
+                        <div className="text-[11.5px] font-medium text-slate-600 leading-relaxed italic text-justify hyphens-auto overflow-y-auto max-h-[180px] custom-scrollbar pr-3">
+                          {renderFormattedNotes(slide.facilitatorNotes)}
+                        </div>
                         
                         <div className="mt-3 pt-3 border-t border-slate-200/60 flex gap-2 items-start">
                           <span className="text-amber-500 text-base leading-none mt-0.5">💡</span>

@@ -308,7 +308,7 @@ export default function CreateTrainingModulePage() {
                 <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs">{index + 1}</span>
                 <div className="flex bg-slate-100 p-1 rounded-md">
                   <button type="button" onClick={() => handleObjectiveChange(index, 'questionType', 'RAPID_SORT')} className={`px-2 py-1 text-xs font-bold rounded transition-all ${obj.questionType === 'RAPID_SORT' ? 'bg-purple-600 text-white' : 'text-slate-500 hover:text-purple-600'}`}>Scenario Categorization</button>
-                  <button type="button" onClick={() => handleObjectiveChange(index, 'questionType', 'SCENARIO_MCQ')} className={`px-2 py-1 text-xs font-bold rounded transition-all ${obj.questionType === 'SCENARIO_MCQ' ? 'bg-amber-500 text-white' : 'text-slate-500 hover:text-amber-600'}`}>Case Study Block</button>
+                  <button type="button" onClick={() => handleObjectiveChange(index, 'questionType', 'SCENARIO_MCQ')} className={`px-2 py-1 text-xs font-bold rounded transition-all ${obj.questionType === 'SCENARIO_MCQ' ? 'bg-amber-500 text-white' : 'text-slate-500 hover:text-amber-600'}`}>Case Study</button>
                   <button type="button" onClick={() => handleObjectiveChange(index, 'questionType', 'TAXONOMY_LEVEL')} className={`px-2 py-1 text-xs font-bold rounded transition-all ${obj.questionType === 'TAXONOMY_LEVEL' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-emerald-600'}`}>Domain Mastery</button>
                 </div>
               </div>
@@ -379,7 +379,7 @@ export default function CreateTrainingModulePage() {
               {obj.questionType === 'SCENARIO_MCQ' && obj.caseStudyBlock && (
                 <div className="pt-3 border-t border-slate-200/50">
                   <span className="text-[10px] font-black uppercase text-slate-500 mb-2 flex items-center justify-between">
-                    Generated Case Study Block ({obj.caseStudyBlock.questions.length} Questions)
+                    Generated Case Study ({obj.caseStudyBlock.questions.length} Questions)
                     <button type="button" onClick={() => handleObjectiveChange(index, 'caseStudyBlock', null)} className="text-rose-400 hover:text-rose-600">Clear</button>
                   </span>
                   
