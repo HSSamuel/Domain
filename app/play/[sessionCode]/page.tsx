@@ -14,7 +14,7 @@ import {
   PointerSensor, 
   TouchSensor, 
   DragOverlay,
-  closestCenter
+  rectIntersection // FIXED: Switched to rectIntersection for lower sensitivity
 } from '@dnd-kit/core';
 
 const Spinner = ({ className = "w-4 h-4" }) => (
@@ -166,7 +166,10 @@ export default function ParticipantPlayRoom() {
   useEffect(() => { sortedWordsRef.current = sortedWords; }, [sortedWords]);
   useEffect(() => { currentQuestionRef.current = currentQuestion; }, [currentQuestion]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), 
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
 
   useEffect(() => {
     let storedId = sessionStorage.getItem('domainassess_p_id');
@@ -220,7 +223,7 @@ export default function ParticipantPlayRoom() {
           options: prev.options || data.options,
           explanation: prev.explanation || data.explanation,
           isCorrect: prev.isCorrect !== undefined ? prev.isCorrect : data.isCorrect,
-          wordsMapping: prev.wordsMapping || data.wordsMapping // Protect locally graded mapping
+          wordsMapping: prev.wordsMapping || data.wordsMapping
         };
       });
     });
@@ -249,7 +252,6 @@ export default function ParticipantPlayRoom() {
           const ptsPerQuestion = Math.round((cq.points || 0) / (activeSubQsTimeout.length || 1));
 
           if (selectedOptionIdRef.current) {
-            // FIX: Ensure selectedOptionId is explicitly cast as string to satisfy Record<string, string>
             const newBlockAnswers = { ...sortedWordsRef.current, [`sq_${currentSubIndexRef.current}`]: selectedOptionIdRef.current as string };
             setSortedWords(newBlockAnswers);
             s.emit('submit_answer', { 
@@ -332,7 +334,6 @@ export default function ParticipantPlayRoom() {
     if (socket && currentQuestion) {
       if (isCaseStudyBlock) {
         
-        // FIX: Ensure selectedOptionId is cast to string
         const newBlockAnswers = { ...sortedWords, [`sq_${currentSubIndex}`]: selectedOptionId as string };
         setSortedWords(newBlockAnswers);
         
@@ -360,7 +361,6 @@ export default function ParticipantPlayRoom() {
       } else {
         socket.emit('submit_answer', { sessionCode, participantId, questionIndex: currentQuestion.index, sortedWords });
         
-        // Instant local grading for Scenario Categorization & Domain Mastery
         let correctCount = 0;
         const validWords = currentQuestion?.words?.filter(w => w.id !== 'case_study_payload') || [];
         const wordsMapping = validWords.map(w => {
@@ -473,7 +473,7 @@ export default function ParticipantPlayRoom() {
 
       {gameState === 'QUESTION' && currentQuestion && (
         <div className={`w-full ${isCaseStudyBlock ? 'max-w-6xl' : 'max-w-4xl'} flex flex-col h-[90vh]`}>
-          <div className="flex justify-between items-center bg-white border rounded-xl p-3 mb-3 shadow-sm flex-shrink-0">
+          <div className="flex justify-between items-center bg-white border rounded-xl p-3 mb-2 shadow-sm flex-shrink-0">
             <span className={`text-[10px] font-bold text-white uppercase px-2 py-1 rounded ${isCaseStudyBlock ? 'bg-amber-500' : 'bg-indigo-500'}`}>
               Q {currentQuestion.index + 1} {isCaseStudyBlock && `| Case Study (Part ${currentSubIndex + 1}/${activeSubQuestions.length})`}
             </span>
@@ -484,39 +484,40 @@ export default function ParticipantPlayRoom() {
 
           {isActuallyCaseStudyType ? (
             isCaseStudyBlock && currentSubQuestionData ? (
-              <div className="flex-1 flex flex-col lg:flex-row gap-4 overflow-hidden">
-                <div className="lg:w-1/2 flex flex-col bg-white rounded-3xl p-4 md:p-6 border shadow-sm h-1/2 lg:h-full overflow-hidden">
-                  <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest mb-3 shrink-0">{blockTitle}</h3>
-                  <div className="overflow-y-auto custom-scrollbar pr-2 flex-1">
-                    <div className="text-sm md:text-base text-slate-700 leading-loose text-justify hyphens-auto font-medium space-y-4">
-                      {caseStudyNarrative.split('\n').filter(p => p.trim() !== '').map((paragraph, i) => (
+              <div className="flex-1 flex flex-col lg:flex-row gap-2 md:gap-4 overflow-hidden">
+                {/* FIXED: Compressed mobile height to 35%, tightened padding, increased line-spacing to 1.3 */}
+                <div className="lg:w-1/2 flex flex-col bg-white rounded-2xl md:rounded-3xl p-3 md:p-6 border shadow-sm h-[35%] lg:h-full overflow-hidden">
+                  <h3 className="text-[10px] md:text-xs font-black uppercase text-slate-400 tracking-widest mb-1.5 shrink-0">{blockTitle}</h3>
+                  <div className="overflow-y-auto custom-scrollbar pr-1 flex-1">
+                    <div className="text-xs md:text-base text-slate-700 leading-[1.3] text-justify hyphens-auto font-medium space-y-3">
+                      {caseStudyNarrative.split(/\r?\n+/).filter(p => p.trim() !== '').map((paragraph, i) => (
                         <p key={i}>{paragraph}</p>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:w-1/2 flex flex-col bg-slate-50 rounded-3xl p-3 md:p-6 border shadow-inner h-1/2 lg:h-full overflow-hidden">
-                  <div className="mb-4 shrink-0">
-                    <h3 className="text-base md:text-lg font-black text-slate-900 leading-snug text-justify hyphens-auto">
+                {/* FIXED: Expanded mobile height to 65% for options, tightened internal paddings */}
+                <div className="lg:w-1/2 flex flex-col bg-slate-50 rounded-2xl md:rounded-3xl p-2 md:p-6 border shadow-inner h-[65%] lg:h-full overflow-hidden">
+                  <div className="mb-1.5 shrink-0 px-1">
+                    <h3 className="text-[11px] md:text-lg font-black text-slate-900 leading-tight text-justify hyphens-auto">
                       <span className="text-indigo-600 mr-1">Q{currentSubIndex + 1}:</span> {currentSubQuestionData.questionText}
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-2 flex-1 overflow-y-auto content-start custom-scrollbar pr-1 mb-2">
-                    {/* FIX: Add Option and number types here to satisfy strict build requirements */}
+                  <div className="grid grid-cols-1 gap-1.5 flex-1 overflow-y-auto content-start custom-scrollbar pr-1 mb-1">
                     {currentSubQuestionData.options?.map((opt: Option, i: number) => (
                       <button
                         key={opt.id}
                         onClick={() => setSelectedOptionId(opt.id)}
-                        className={`p-3 md:p-4 rounded-xl border-2 text-left text-justify hyphens-auto transition-all ${
+                        className={`px-2.5 py-1.5 md:p-4 rounded-xl border-2 text-left text-justify hyphens-auto transition-all ${
                           selectedOptionId === opt.id
                             ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-md scale-[1.02]'
                             : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-slate-700'
                         }`}
                       >
-                        <span className="uppercase text-[9px] font-black tracking-widest opacity-50 block mb-1">Option {String.fromCharCode(65 + i)}</span>
-                        <span className="text-sm font-bold leading-snug block">{opt.text}</span>
+                        <span className="uppercase text-[8px] font-black tracking-widest opacity-50 block mb-0.5 leading-none">Option {String.fromCharCode(65 + i)}</span>
+                        <span className="text-[11px] md:text-sm font-bold leading-tight block">{opt.text}</span>
                       </button>
                     ))}
                   </div>
@@ -524,7 +525,7 @@ export default function ParticipantPlayRoom() {
                   <button 
                     disabled={!selectedOptionId}
                     onClick={handleProceed}
-                    className={`w-full py-4 font-black rounded-xl shadow-sm text-sm transition-all flex-shrink-0 mt-2 ${
+                    className={`w-full py-2.5 md:py-4 font-black rounded-xl shadow-sm text-xs md:text-sm transition-all flex-shrink-0 mt-1 ${
                        selectedOptionId ? 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
                   >
@@ -539,7 +540,7 @@ export default function ParticipantPlayRoom() {
             )
           ) : (
             <div className="flex-1 flex flex-col bg-slate-100/50 rounded-3xl p-2 md:p-4 border shadow-inner overflow-hidden transition-opacity duration-300">
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+              <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
                 <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col h-[40%] min-h-[180px] mb-3">
                   <div className="flex justify-between items-center mb-3 flex-shrink-0">
                     <h4 className="font-black text-slate-400 uppercase text-[10px] tracking-widest">Word Bank</h4>

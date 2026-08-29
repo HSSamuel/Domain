@@ -437,7 +437,7 @@ export default function ObjectiveBuilderPage() {
               onClick={() => setActiveTab('OBJECTIVES')}
               className={`flex-1 py-4 font-black text-sm uppercase tracking-widest transition-colors rounded-tl-3xl ${activeTab === 'OBJECTIVES' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              1. Learning Objectives
+              Learning Objectives
             </button>
             <div className={`flex-1 flex justify-center items-center gap-3 transition-colors rounded-tr-3xl ${activeTab === 'PRESENTATION' ? 'bg-white text-emerald-600 border-b-2 border-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}>
               
@@ -460,8 +460,8 @@ export default function ObjectiveBuilderPage() {
                 disabled={isGeneratingPresentation}
                 className="py-4 font-black text-sm uppercase tracking-widest flex items-center gap-2"
               >
-                {isGeneratingPresentation ? <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div> : '📊'}
-                {isGeneratingPresentation ? 'Generating Deck...' : presentation ? '2. Presentation Deck' : '2. Generate Deck & Notes'}
+                {isGeneratingPresentation ? <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div> : ''}
+                {isGeneratingPresentation ? 'Generating Deck...' : presentation ? 'Generate Presentation' : 'Generate Slides'}
               </button>
             </div>
           </div>
