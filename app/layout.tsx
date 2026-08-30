@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 // 2. Updated Metadata to link the manifest and iOS app settings
 export const metadata: Metadata = {
-  title: "DomainAssess | Facilitator Dashboard",
+  title: "DomainAssess",
   description: "Interactive learning domain sorter for public sector training",
   manifest: "/manifest.json",
   appleWebApp: {
